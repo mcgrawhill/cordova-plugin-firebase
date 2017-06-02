@@ -35,16 +35,16 @@
 
 - (BOOL)application:(UIApplication *)application swizzledDidFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [self application:application swizzledDidFinishLaunchingWithOptions:launchOptions];
-    
+
     if(![FIRApp defaultApp]) {
         [FIRApp configure];
     }
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tokenRefreshNotification:)
                                                  name:kFIRInstanceIDTokenRefreshNotification object:nil];
-    
+
     self.applicationInBackground = @(YES);
-    
+
     return YES;
 }
 
@@ -65,7 +65,7 @@
     // should be done.
     NSString *refreshedToken = [[FIRInstanceID instanceID] token];
     NSLog(@"InstanceID token: %@", refreshedToken);
-    
+
     // Connect to FCM since connection may have failed when attempted before having a token.
     [self connectToFcm];
 
@@ -86,12 +86,12 @@
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
     NSDictionary *mutableUserInfo = [userInfo mutableCopy];
-    
+
     [mutableUserInfo setValue:self.applicationInBackground forKey:@"tap"];
-    
+
     // Pring full message.
     NSLog(@"%@", mutableUserInfo);
-    
+
     [FirebasePlugin.firebasePlugin sendNotification:mutableUserInfo];
 }
 
@@ -99,12 +99,12 @@
     fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
 
     NSDictionary *mutableUserInfo = [userInfo mutableCopy];
-    
+
     [mutableUserInfo setValue:self.applicationInBackground forKey:@"tap"];
-    
+
     // Pring full message.
     NSLog(@"%@", mutableUserInfo);
-    
+
     [FirebasePlugin.firebasePlugin sendNotification:mutableUserInfo];
 }
 
@@ -113,12 +113,12 @@
        willPresentNotification:(UNNotification *)notification
          withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
     NSDictionary *mutableUserInfo = [notification.request.content.userInfo mutableCopy];
-    
+
     [mutableUserInfo setValue:self.applicationInBackground forKey:@"tap"];
-    
+
     // Pring full message.
     NSLog(@"%@", mutableUserInfo);
-    
+
     [FirebasePlugin.firebasePlugin sendNotification:mutableUserInfo];
 }
 
@@ -128,5 +128,13 @@
     NSLog(@"%@", [remoteMessage appData]);
 }
 #endif
+
+// Set APN token in Firebase instance to receive background notifications
+- (void)application:(UIApplication *)application
+didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+    NSString *token = [[deviceToken description] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"<>"]];
+    NSLog(@"[APN] - didRegisterForRemoteNotificationsWithDeviceToken - %@", [token stringByReplacingOccurrencesOfString:@" " withString:@""]);
+    [[FIRInstanceID instanceID] setAPNSToken:deviceToken type:FIRInstanceIDAPNSTokenTypeUnknown];
+}
 
 @end
