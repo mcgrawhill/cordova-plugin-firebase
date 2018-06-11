@@ -9,6 +9,17 @@ buildscript {
 repositories {
     mavenCentral()
 }
+
+allprojects {
+  repositories {
+    maven {
+      url "https://maven.google.com" // Google's Maven repository
+    }
+    mavenCentral();
+    jcenter()
+  }
+}
+
 dependencies {
     compile 'me.leolin:ShortcutBadger:1.1.4@aar'
     compile 'com.google.firebase:firebase-crash:+'
